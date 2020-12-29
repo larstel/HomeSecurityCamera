@@ -1,5 +1,6 @@
 import cv2
 import time
+import subprocess
 
 capture = False
 oldtime = 11
@@ -11,6 +12,20 @@ size = (width, height)
 out = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc(*"MJPG"),
                       20,
                       size)
+
+
+def isDeviceConnected():
+    p = subprocess.Popen(
+        "sudo arp-scan -l --interface=wlp3s0 | grep 192.168.178.62",
+        stdout=subprocess.PIPE,
+        shell=True)
+    (output, err) = p.communicate()
+    p.wait()
+    if output:
+        return True
+    else:
+        return False
+
 
 while True:
     check, frame = cap.read()
@@ -27,8 +42,10 @@ while True:
                                      cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)
 
+    print(isDeviceConnected())
     for contour in contours:
-        if cv2.contourArea(contour) > 10000 and time.time() - oldtime > 10:
+        if cv2.contourArea(contour) > 10000 and time.time() - \
+                oldtime > 10:
             (x, y, w, h) = cv2.boundingRect(contour)
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
 
