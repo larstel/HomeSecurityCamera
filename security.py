@@ -15,15 +15,16 @@ out = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc(*"MJPG"),
 
 
 def isDeviceConnected():
-    p = subprocess.Popen(
-        "sudo arp-scan -l --interface=wlp3s0 | grep 192.168.178.62",
-        stdout=subprocess.PIPE,
-        shell=True)
+    p = subprocess.Popen("bluetoothctl connect 00:57:C1:59:9F:A8 | grep 'Connection successful'", stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     p.wait()
     if output:
+        p = subprocess.Popen("bluetoothctl disconnect 00:57:C1:59:9F:A8 | grep 'Successful disconnected'", stdout=subprocess.PIPE, shell=True)
+        p.wait()
+        print("True")
         return True
     else:
+        print("False")
         return False
 
 
@@ -42,10 +43,9 @@ while True:
                                      cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)
 
-    print(isDeviceConnected())
     for contour in contours:
         if cv2.contourArea(contour) > 10000 and time.time() - \
-                oldtime > 10:
+                oldtime > 10 and isDeviceConnected is False:
             (x, y, w, h) = cv2.boundingRect(contour)
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
 
